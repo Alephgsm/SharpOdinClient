@@ -6,7 +6,7 @@ Many parts of this project are obtained by reverse engineering methods and are t
 # Platform
 Windows .NET 4.5.1
 
-# How does odinsharplib work?
+# How does work?
 USB communication in odinsharplib is serialport
 
 
