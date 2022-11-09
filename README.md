@@ -4,8 +4,10 @@ SharpOdinClient is a .NET library that allows .NET applications to communicate w
 A suitable client for flash(image , tar.md5 , lz4), getting info and implementing other features.
 
 It provides a .NET implementation of the odin protocol.
-# Platform
-.NET Framework 4.5.1
+# Requirements:
++ .NET Framework 4.5.1
++ Official Samsung usb driver
+
 
 # How does work?
 USB communication in SharpOdinClient is serialport.
