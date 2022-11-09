@@ -12,6 +12,7 @@ namespace OdinSharpLib.util
         public static bool Stop;
         public delegate void LogDelegate(string Text,  MsgType Color);
         public delegate void ProgressChangeDelegate(long max, long value);
+        public delegate void ProgressChangedDelegate(string filename, long max, long value, long WritenSize);
 
         public static string Right(this string value, int length)
         {
