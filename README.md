@@ -1,10 +1,134 @@
 # SharpOdinClient
-SharpOdinClient is open-source lib suite used to flash firmware(image , tar.md5 , lz4) and run more features in download mode of samsung devices
+SharpOdinClient is a .NET library that allows .NET applications to communicate with samsung android devices in download mode.
 
+A suitable client for flash(image , tar.md5 , lz4), getting info and implementing other features.
+
+It provides a .NET implementation of the odin protocol.
 # Platform
 Windows .NET 4.5.1
 
 # How does work?
-USB communication in SharpOdinClient is serialport
+USB communication in SharpOdinClient is serialport.
+
+1. install Official Samsung usb driver
+2. Connect your device in download mode 
 
 
+### Subscribe for events
+```        private Odin Odin = new Odin();
+        public MainWindow()
+        {
+            InitializeComponent();
+
+            Odin.Log += Odin_Log;
+            Odin.ProgressChanged += Odin_ProgressChanged;
+        }
+
+        private void Odin_ProgressChanged(string filename, long max, long value, long WritenSize)
+        {
+        }
+
+        private void Odin_Log(string Text, SharpOdinClient.util.utils.MsgType Color)
+        {
+        }
+```
+
+### Find Automatically samsung devices in download mode
+
+```  public async Task FindOdin()
+        {
+            //Find Auto odin device
+            var device = await Odin.FindDownloadModePort();
+            //device name
+            Console.WriteLine(device.Name);
+
+            // COM Port Of device 
+            Console.WriteLine(device.COM);
+
+            // VID and PID Of Device
+            Console.WriteLine(device.VID);
+            Console.WriteLine(device.PID);
+        }
+```
+
+### Read Info from device
+```public async Task ReadOdinInfo()
+        {
+            if(await Odin.FindAndSetDownloadMode())
+            {
+                //get info from device
+                var info = await Odin.DVIF();
+                await Odin.PrintInfo();
+            }
+        }
+```
+in `info` variable we get dictionary of `string` , `string`
+The concept of some 'keys'
++ `capa` = Capa Number
++ `product` = Product Id
++ `model` = Model Number
++ `fwver` = Firmware Version
++ `vendor` = vendor
++ `sales` = Sales Code
++ `ver` = Build Number
++ `did` = did Number
++ `un` = Unique Id
++ `tmu_temp` = Tmu Number
++ `prov` = Provision
+
+
+### Read Pit from device
+```public async Task ReadPit()
+        {
+            if(await Odin.FindAndSetDownloadMode())
+            {
+                await Odin.PrintInfo();
+                if (await Odin.IsOdin())
+                {
+                    if(await Odin.LOKE_Initialize(0))
+                    {
+                        var Pit = await Odin.Read_Pit();
+                        if (Pit.Result)
+                        {
+                            var buffer = Pit.data;
+                            var entry = Pit.Pit;
+                        }
+                    }
+                }
+            }
+        }
+```
+
+for doing any action in download mode , need first to check `IsOdin` and Run `LOKE_Initialize` argument, if you do not want to write anything on device set `LOKE_Initialize` `totalfilesize` parameter to zero(0) 
+
+`buffer` = is byte array of pit from device , you can write this buffer on file for saving pit
+`entry` = is list of partition information of your device
+
+### Write Pit On Device
+```
+  /// <summary>
+        /// write pit file on your device
+        /// </summary>
+        /// <param name="pit">in this parameter, you can set tar.md5 contains have pit file(Like csc package of firmware)
+        /// or pit file with .pit format
+        /// </param>
+        /// <returns>true if success</returns>
+        public async Task<bool> Write_Pit(string pit)
+        {
+            if (await Odin.FindAndSetDownloadMode())
+            {
+                await Odin.PrintInfo();
+                if (await Odin.IsOdin())
+                {
+                    if (await Odin.LOKE_Initialize(0))
+                    {
+                        var Pit = await Odin.Write_Pit(pit);
+                        return Pit.status;
+                    }
+                }
+            }
+            return false;
+        }
+```
+
++ `pit` parameter = if you want to write pit from tar or tar.md5(Like CSC) file on device you can set your tar type file path , also you can set your pit single file with .pit format file
