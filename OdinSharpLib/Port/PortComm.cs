@@ -6,7 +6,7 @@ using System.Management;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OdinSharpLib
+namespace OdinSharpLib.Port
 {
   
   
@@ -117,6 +117,17 @@ namespace OdinSharpLib
             {
             }
             return new ItypePort();
+        }
+
+
+        /// <summary>
+        /// Finding samsung devices download mode port 
+        /// </summary>
+        /// <returns></returns>
+        public static async Task<ItypePort> FindDownloadModePort()
+        {
+            await UpdatePorts();
+            return ListOfComPort.Find(x => x.Name.ToUpper().Contains("SAMSUNG MOBILE USB MODEM"));
         }
     }
 }
