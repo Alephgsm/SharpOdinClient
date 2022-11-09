@@ -132,3 +132,100 @@ for doing any action in download mode , need first to check `IsOdin` and Run `LO
 ```
 
 + `pit` parameter = if you want to write pit from tar or tar.md5(Like CSC) file on device you can set your tar type file path , also you can set your pit single file with .pit format file
+
+### Flash List Of tar.md5 package on device
+```/// <summary>
+        /// Add List Of Your tar package (bl,ap,cp,csc , or more)
+        /// </summary>
+        /// <param name="ListOfTarFile">add tar type files path in this list</param>
+        /// <returns></returns>
+        public async Task<bool> FlashFirmware(List<string> ListOfTarFile)
+        {
+            var FlashFile = new List<FileFlash>();
+            foreach(var i in ListOfTarFile)
+            {
+                var item = Odin.tar.TarInformation(i);
+                if(item.Count > 0)
+                {
+                    foreach (var Tiem in item)
+                    {
+                        if (!Exist(Tiem , FlashFile))
+                        {
+                            var Extension = System.IO.Path.GetExtension(Tiem.Filename);
+                            var file = new FileFlash
+                            {
+                                Enable = true,
+                                FileName = Tiem.Filename,
+                                FilePath = i
+                            };
+
+                            if (Extension == ".pit")
+                            {
+                                //File Contains have pit
+                            }
+                            else if (Extension == ".lz4")
+                            {
+                                file.RawSize = Odin.CalculateLz4SizeFromTar(i, Tiem.Filename);
+                            }
+                            else
+                            {
+                                file.RawSize = Tiem.Filesize;
+                            }
+                            FlashFile.Add(file);
+                        }
+                    }
+                }
+               
+            }
+
+            if(FlashFile.Count > 0)
+            {
+                var Size = 0L;
+                foreach (var item in FlashFile)
+                {
+                    Size += item.RawSize;
+                }
+                if (await Odin.FindAndSetDownloadMode())
+                {
+                    await Odin.PrintInfo();
+                    if (await Odin.IsOdin())
+                    {
+                        if (await Odin.LOKE_Initialize(Size))
+                        {
+                            var findPit = FlashFile.Find(x => x.FileName.ToLower().EndsWith(".pit"));
+                            if(findPit != null)
+                            {
+                                var res = MessageBox.Show("Pit Finded on your tar package , you want to repartition?", "", MessageBoxButton.YesNo);
+                                if (res == MessageBoxResult.Yes)
+                                {
+                                    var Pit = await Odin.Write_Pit(findPit.FilePath);
+
+                                }
+                            }
+                          
+                            var ReadPit = await Odin.Read_Pit();
+                            if (ReadPit.Result)
+                            {
+                                var EfsClearInt = 0;
+                                var BootUpdateInt = 1;
+                                if (await Odin.FlashFirmware(FlashFile, ReadPit.Pit, EfsClearInt, BootUpdateInt, true))
+                                {
+                                    if (await Odin.PDAToNormal())
+                                    {
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+
+            return false;
+        }
+```
+
+for flashing tar,tar.md5 contains files we need to create list of `FileFlash` from you tar package information.
+
+`Enable` property in `FileFlash` is `bool` if you set this propery to false, SharpOdinClient does not Flash on the phone.
