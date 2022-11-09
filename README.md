@@ -30,8 +30,8 @@ USB communication in SharpOdinClient is serialport.
 
         private void Odin_Log(string Text, SharpOdinClient.util.utils.MsgType Color)
         {
-        }```
-
+        }
+```
 
 # Find Automatically samsung devices in download mode
 
@@ -48,7 +48,8 @@ USB communication in SharpOdinClient is serialport.
             // VID and PID Of Device
             Console.WriteLine(device.VID);
             Console.WriteLine(device.PID);
-        }```
+        }
+```
 
 # Read Info from device
 ```public async Task ReadOdinInfo()
@@ -59,8 +60,8 @@ USB communication in SharpOdinClient is serialport.
                 var info = await Odin.DVIF();
                 await Odin.PrintInfo();
             }
-        }```
-
+        }
+```
 in `info` variable we get dictionary of `string` , `string`
 The concept of some 'keys'
 + `capa` = Capa Number
