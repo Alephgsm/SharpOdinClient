@@ -1,8 +1,8 @@
 ﻿using K4os.Compression.LZ4.Streams;
-using OdinSharpLib.Pit;
-using OdinSharpLib.Port;
-using OdinSharpLib.structs;
-using OdinSharpLib.util;
+using SharpOdinClient.Pit;
+using SharpOdinClient.Port;
+using SharpOdinClient.structs;
+using SharpOdinClient.util;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,9 +10,9 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using static OdinSharpLib.util.utils;
+using static SharpOdinClient.util.utils;
 
-namespace OdinSharpLib
+namespace SharpOdinClient
 {
     public class Odin
     {

@@ -1,6 +1,6 @@
 ﻿
 
-namespace OdinSharpLib.util
+namespace SharpOdinClient.util
 {
     public static class utils
     {

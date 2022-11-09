@@ -8,8 +8,8 @@
     <ProjectGuid>{3CC51372-CAF9-4E67-913D-CAC3686024BB}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>OdinSharpLib</RootNamespace>
-    <AssemblyName>OdinSharpLib</AssemblyName>
+    <RootNamespace>SharpOdinClient</RootNamespace>
+    <AssemblyName>SharpOdinClient</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>

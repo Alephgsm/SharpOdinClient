@@ -1,10 +1,10 @@
-﻿using OdinSharpLib.structs;
+﻿using SharpOdinClient.structs;
 using System;
 using System.Collections.Generic;
 using System.Management;
 using System.Threading.Tasks;
 
-namespace OdinSharpLib.Port
+namespace SharpOdinClient.Port
 {
   
   

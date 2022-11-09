@@ -1,12 +1,12 @@
-﻿using OdinSharpLib.Port;
-using OdinSharpLib.structs;
+﻿using SharpOdinClient.Port;
+using SharpOdinClient.structs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OdinSharpLib
+namespace SharpOdinClient
 {
     public class Cmd
     {

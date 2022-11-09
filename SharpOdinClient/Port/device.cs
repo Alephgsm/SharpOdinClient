@@ -1,10 +1,10 @@
-﻿using OdinSharpLib.structs;
-using OdinSharpLib.util;
+﻿using SharpOdinClient.structs;
+using SharpOdinClient.util;
 using System;
 using System.IO.Ports;
 using System.Threading.Tasks;
 
-namespace OdinSharpLib.Port
+namespace SharpOdinClient.Port
 {
     public class device
     {

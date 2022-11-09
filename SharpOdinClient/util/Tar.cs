@@ -4,9 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static OdinSharpLib.util.utils;
+using static SharpOdinClient.util.utils;
 
-namespace OdinSharpLib.util
+namespace SharpOdinClient.util
 {
     public class cListFileData
     {

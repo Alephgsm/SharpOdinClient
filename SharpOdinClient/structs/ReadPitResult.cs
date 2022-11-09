@@ -1,8 +1,8 @@
 ﻿
-using OdinSharpLib.Pit;
+using SharpOdinClient.Pit;
 using System.Collections.Generic;
 
-namespace OdinSharpLib.structs
+namespace SharpOdinClient.structs
 {
     public struct ReadPitResult
     {

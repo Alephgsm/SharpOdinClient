@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OdinSharpLib.Pit
+namespace SharpOdinClient.Pit
 {
 	public enum TPitEntry
 	{

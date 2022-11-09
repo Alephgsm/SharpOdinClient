@@ -1,6 +1,6 @@
 ﻿
 
-namespace OdinSharpLib.structs
+namespace SharpOdinClient.structs
 {
     public struct Result
     {

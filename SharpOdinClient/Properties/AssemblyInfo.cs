@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("OdinSharpLib")]
+[assembly: AssemblyTitle("SharpOdinClient")]
 [assembly: AssemblyDescription("samsung download mode protocol for c# language")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Gsm Alphabet - Alephgsm.com")]
-[assembly: AssemblyProduct("OdinSharpLib")]
+[assembly: AssemblyProduct("SharpOdinClient")]
 [assembly: AssemblyCopyright("Copyright ©  2022")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
