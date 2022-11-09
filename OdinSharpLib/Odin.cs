@@ -1,11 +1,12 @@
-﻿using OdinSharpLib.Port;
+﻿using OdinSharpLib.Pit;
+using OdinSharpLib.Port;
 using OdinSharpLib.structs;
 using OdinSharpLib.util;
 using System;
 using System.Collections.Generic;
-using System.IO.Ports;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using static OdinSharpLib.util.utils;
@@ -14,15 +15,11 @@ namespace OdinSharpLib
 {
     public class Odin
     {
-
-        /// <summary>
-        /// connected device
-        /// </summary>
+        public Cmd cmd = new Cmd();
         public device Device = new device();
+        public Tar tar = new Tar();
+        public PITData PitTool = new PITData();
 
-        /// <summary>
-        /// delegate log
-        /// </summary>
         public event LogDelegate Log;
 
         /// <summary>
@@ -30,6 +27,7 @@ namespace OdinSharpLib
         /// </summary>
         /// <returns>serialport information
         public async Task<ItypePort> FindDownloadModePort() => await PortComm.FindDownloadModePort();
+        public async Task<bool> LOKE_Initialize(long totalFileSize) => await cmd.LOKE_Initialize(this.Device, totalFileSize);
 
 
         /// <summary>
@@ -191,5 +189,206 @@ namespace OdinSharpLib
         {
             utils.Stop = true;
         }
+
+
+
+        public async Task<bool> PDAToNormal()
+        {
+            try
+            {
+                SamsungLokeCommand cmd2 = new SamsungLokeCommand(103);
+                await cmd.LOKE_SendCMD(this.Device,cmd2);
+                cmd2.SeqCmd = 1;
+                await cmd.LOKE_SendCMD(this.Device, cmd2);
+            }
+            catch { }
+            var watch = new Stopwatch();
+            try
+            {
+                watch.Start();
+                do
+                {
+                    if (!Device.Port.IsOpen)
+                    {
+                        return true;
+                    }
+                } while (watch.ElapsedMilliseconds < 60000);
+            }
+            finally
+            {
+                watch.Stop();
+            }
+            return !Device.Port.IsOpen;
+        }
+
+        public async Task<Result> Write_Pit(byte[] pit)
+        {
+            var Result = new Result { error = "Failed RePartition" };
+            try
+            {
+                SamsungLokeCommand command = new SamsungLokeCommand(101);
+                if (await cmd.LOKE_SendCMD(Device, command))
+                {
+                    command = new SamsungLokeCommand(101, 2, pit.Length);
+                    if (await cmd.LOKE_SendCMD(Device, command))
+                    {
+                        await Device.WritePort(pit, pit.Length);
+                        cmd.BufferRead = await Device.ReadPort(8);
+                        if (cmd.BufferRead[0] != byte.MaxValue)
+                        {
+                            command = new SamsungLokeCommand(101, 3, pit.Length);
+                            await cmd.LOKE_SendCMD(Device, command);
+                            Result.status = true;
+                        }
+
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Result.error = ex.Message;
+            }
+
+            return Result;
+        }
+
+        public async Task<Result> Write_Pit(string File)
+        {
+            var Result = new Result { error = "Failed RePartition" };
+            try
+            {
+                byte[] pit = new byte[] { };
+                var Extension = Path.GetExtension(File).ToLower();
+                if (Extension == ".tar" || Extension == ".md5")
+                {
+
+                    var TarInfo = tar.TarInformation(File);
+                    var pitname = TarInfo.ToList().Find(item => item.Filename.ToLower().EndsWith(".pit"));
+                    if (pitname != null)
+                    {
+                        pit = await tar.ExtractFileFromTar(File, pitname.Filename);
+                    }
+                    else
+                    {
+                        Result.error = "Cannot Find Pit In Tar";
+                        return Result;
+                    }
+                }
+                else if (Extension == ".pit")
+                {
+                    pit = System.IO.File.ReadAllBytes(File);
+                }
+                else
+                {
+                    Result.error = "Pit Is Invalid";
+                    return Result;
+                }
+
+                SamsungLokeCommand command = new SamsungLokeCommand(101);
+                if (await cmd.LOKE_SendCMD(Device, command))
+                {
+                    command = new SamsungLokeCommand(101, 2, pit.Length);
+                    if (await cmd.LOKE_SendCMD(Device, command))
+                    {
+                        await Device.WritePort(pit,  pit.Length);
+                        cmd.BufferRead = await Device.ReadPort(8);
+                        if (cmd.BufferRead[0] != byte.MaxValue)
+                        {
+                            command = new SamsungLokeCommand(101, 3, pit.Length);
+                            await cmd.LOKE_SendCMD(Device, command);
+                            Result.status = true;
+                        }
+
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Result.error = ex.Message;
+            }
+
+            return Result;
+        }
+
+        public async Task<ReadPitResult> Read_Pit()
+        {
+            var Result = new ReadPitResult();
+            try
+            {
+                using (var PitStream = new MemoryStream())
+                {
+                    byte[] array = new byte[1025];
+                    byte[] array2 = new byte[4097];
+                    string currentDirectory = Environment.CurrentDirectory;
+                    var cmd = new SamsungLokeCommand(0x65, 1);
+                    if (await this.cmd.LOKE_SendCMD(Device,cmd))
+                    {
+                        // 4 to 8
+                        var pitSize = new byte[] { this.cmd.BufferRead[7], this.cmd.BufferRead[6], this.cmd.BufferRead[5], this.cmd.BufferRead[4] };
+                        long num = (long)Convert.ToInt32(BitConverter.ToString(pitSize).Replace("-",""), 16);
+                        int num2 = (int)(unchecked((double)num / 500.0 + 1.0));
+                        int num3 = 0;
+                        int num4 = num2 - 1;
+                        for (int i = 0; i <= num4; i++)
+                        {
+                            int num5;
+                            if (num - unchecked((long)num3) >= 500L)
+                            {
+                                num5 = 500;
+                            }
+                            else
+                            {
+                                num5 = (int)(num - unchecked((long)num3));
+                            }
+                            int num6 = 0;
+                            do
+                            {
+                                array[num6] = 0;
+                                num6++;
+                            }
+                            while (num6 <= 1023);
+                            num6 = 0;
+                            do
+                            {
+                                array2[num6] = 0;
+                                num6++;
+                            }
+                            while (num6 <= 4096);
+                            array[0] = 101;
+                            array[1] = 0;
+                            array[2] = 0;
+                            array[3] = 0;
+                            array[4] = 2;
+                            array[5] = 0;
+                            array[6] = 0;
+                            array[7] = 0;
+                            array[8] = (byte)(i % 256);
+                            array[9] = (byte)(i / 256.0);
+                            array[10] = (byte)(i / 65536.0);
+                            array[11] = (byte)(i / 16777216.0);
+                            num3 += num5;
+                            await this.Device.WritePort(array,  1024);
+                            int num7 = this.Device.Port.Read(array2, 0, num5);
+                            PitStream.Write(array2, 0, num5);
+                        }
+                    }
+                    byte[] sData = PitStream.ToArray();
+                    Result.Result = true;
+                    Result.data = sData;
+                    if (PitTool.UNPACK_PIT(sData))
+                    {
+                        Result.Pit = PitTool.xPIT_Entry.ToList();
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Result.error = e.Message;
+            }
+            return Result;
+        }
+
+      
     }
 }
