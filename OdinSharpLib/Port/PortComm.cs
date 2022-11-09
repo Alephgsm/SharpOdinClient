@@ -123,7 +123,7 @@ namespace OdinSharpLib.Port
         /// <summary>
         /// Finding samsung devices download mode port 
         /// </summary>
-        /// <returns></returns>
+        /// <returns>serialport information</returns>
         public static async Task<ItypePort> FindDownloadModePort()
         {
             await UpdatePorts();
