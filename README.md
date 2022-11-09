@@ -76,3 +76,30 @@ The concept of some 'keys'
 + `tmu_temp` = Tmu Number
 + `prov` = Provision
 
+
+### Read Pit from device
+```public async Task ReadPit()
+        {
+            if(await Odin.FindAndSetDownloadMode())
+            {
+                await Odin.PrintInfo();
+                if (await Odin.IsOdin())
+                {
+                    if(await Odin.LOKE_Initialize(0))
+                    {
+                        var Pit = await Odin.Read_Pit();
+                        if (Pit.Result)
+                        {
+                            var buffer = Pit.data;
+                            var entry = Pit.Pit;
+                        }
+                    }
+                }
+            }
+        }
+```
+
+for doing any action in download mode , need first to check `IsOdin` and Run `LOKE_Initialize` argument, if you do not want to write anything on device set `LOKE_Initialize` `totalfilesize` parameter to zero(0) 
+
+`buffer` = is byte array of pit from device , you can write this buffer on file for saving pit
+`entry` = is list of partition information of your device
