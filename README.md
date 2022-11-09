@@ -103,3 +103,32 @@ for doing any action in download mode , need first to check `IsOdin` and Run `LO
 
 `buffer` = is byte array of pit from device , you can write this buffer on file for saving pit
 `entry` = is list of partition information of your device
+
+### Write Pit On Device
+```
+  /// <summary>
+        /// write pit file on your device
+        /// </summary>
+        /// <param name="pit">in this parameter, you can set tar.md5 contains have pit file(Like csc package of firmware)
+        /// or pit file with .pit format
+        /// </param>
+        /// <returns>true if success</returns>
+        public async Task<bool> Write_Pit(string pit)
+        {
+            if (await Odin.FindAndSetDownloadMode())
+            {
+                await Odin.PrintInfo();
+                if (await Odin.IsOdin())
+                {
+                    if (await Odin.LOKE_Initialize(0))
+                    {
+                        var Pit = await Odin.Write_Pit(pit);
+                        return Pit.status;
+                    }
+                }
+            }
+            return false;
+        }
+```
+
++ `pit` parameter = if you want to write pit from tar or tar.md5(Like CSC) file on device you can set your tar type file path , also you can set your pit single file with .pit format file
