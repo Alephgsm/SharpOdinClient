@@ -288,3 +288,6 @@ You can Flash your single file like boot.img  or more files on partitions
         }
 ```
 
+# dontate
+theter TRC20
+```TXZ1KviFtRzEiumVD8UCH1W7etJ2vM9VsQ```
