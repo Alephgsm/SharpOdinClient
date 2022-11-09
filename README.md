@@ -13,6 +13,12 @@ USB communication in SharpOdinClient is serialport.
 1. install Official Samsung usb driver
 2. Connect your device in download mode 
 
+### Namespaces
+first add namespaces of SharpOdinClient on your project
+```using SharpOdinClient;
+using SharpOdinClient.structs;
+using SharpOdinClient.util;
+```
 
 ### Subscribe for events
 ```        private Odin Odin = new Odin();
@@ -231,3 +237,52 @@ for flashing tar,tar.md5 contains files(lz4 , image, bin and more ...) we need t
 `Enable` property in `FileFlash` is `bool` if you set this propery to false, SharpOdinClient does not Flash on the phone.
 
 in `FlashFirmware` function , SharpOdinClient can write lz4 from contains of your tar package
+
+### Flash Single File
+You can Flash your single file like boot.img  or more files on partitions
+```
+        /// <summary>
+        /// Flash Single File lz4 , image
+        /// </summary>
+        /// <param name="FilePath">path of your file</param>
+        /// <param name="PartitionFileName">like boot.img , sboot.bin or more ...</param>
+        /// <returns></returns>
+        public async Task<bool> FlashSingleFile(string FilePath , string PartitionFileName)
+        {
+            var FlashFile = new FileFlash
+            {
+                Enable = true,
+                FileName = PartitionFileName,
+                FilePath = FilePath,
+                RawSize = new FileInfo(FilePath).Length
+            };
+
+            if (await Odin.FindAndSetDownloadMode())
+            {
+                await Odin.PrintInfo();
+                if (await Odin.IsOdin())
+                {
+                    if (await Odin.LOKE_Initialize(FlashFile.RawSize))
+                    {
+                        var ReadPit = await Odin.Read_Pit();
+                        if (ReadPit.Result)
+                        {
+                            var EfsClearInt = 0;
+                            var BootUpdateInt = 0;
+                            if (await Odin.FlashSingleFile(FlashFile, ReadPit.Pit, EfsClearInt, BootUpdateInt, true))
+                            {
+                                if (await Odin.PDAToNormal())
+                                {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+
+            return false;
+        }
+```
+
