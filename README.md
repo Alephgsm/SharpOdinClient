@@ -14,7 +14,7 @@ USB communication in SharpOdinClient is serialport.
 2. Connect your device in download mode 
 
 
-# Subscribe for events
+### Subscribe for events
 ```        private Odin Odin = new Odin();
         public MainWindow()
         {
@@ -33,7 +33,7 @@ USB communication in SharpOdinClient is serialport.
         }
 ```
 
-# Find Automatically samsung devices in download mode
+### Find Automatically samsung devices in download mode
 
 ```  public async Task FindOdin()
         {
@@ -51,7 +51,7 @@ USB communication in SharpOdinClient is serialport.
         }
 ```
 
-# Read Info from device
+### Read Info from device
 ```public async Task ReadOdinInfo()
         {
             if(await Odin.FindAndSetDownloadMode())
@@ -65,7 +65,7 @@ USB communication in SharpOdinClient is serialport.
 in `info` variable we get dictionary of `string` , `string`
 The concept of some 'keys'
 + `capa` = Capa Number
-+ 'product' = Product Id
++ `product` = Product Id
 + `model` = Model Number
 + `fwver` = Firmware Version
 + `vendor` = vendor
@@ -75,3 +75,4 @@ The concept of some 'keys'
 + `un` = Unique Id
 + `tmu_temp` = Tmu Number
 + `prov` = Provision
+
