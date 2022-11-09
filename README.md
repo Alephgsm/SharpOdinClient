@@ -1,6 +1,14 @@
+[![Issues][issues-shield]][issues-url]
+
 # OdinSharpLib
-Last protocol of samsung device in download mode
+odinsharplib is open-source lib suite used to flash firmware(image , tar.md5 , lz4) and run more features in download mode of samsung devices
 
-As you know, Heimdall has not been updated for a long time, since the last update of Heimdall, changes have been made in the download mode protocol of Samsung devices.
+Many parts of this project are obtained by reverse engineering methods and are tested on many devices ;).
 
-Updating ...
+
+# Platform
+Windows .NET 4.5.1
+
+# How does odinsharplib work?
+USB communication in odinsharplib is [serialport]: https://learn.microsoft.com/en-us/dotnet/api/system.io.ports.serialport?view=dotnet-plat-ext-6.0
+
