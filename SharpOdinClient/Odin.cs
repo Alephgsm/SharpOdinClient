@@ -702,6 +702,30 @@ namespace SharpOdinClient
             return Result;
         }
 
-      
+        public long CalculateLz4SizeFromTar(string Archive, string inp_filename)
+        {
+            long lengh = 0L;
+            try
+            {
+                var temp1 = tar.TarInformation(Archive);
+                cListFileData TarFileData = temp1.ToList().Find(TarItem => TarItem.Filename == inp_filename);
+                if (TarFileData != null)
+                {
+                    using (var reader = new FileStream(Archive, FileMode.Open, FileAccess.Read))
+                    {
+                        long j = TarFileData.FilePosStart;
+                        reader.Position = j;
+                        using (var lz4 = LZ4Stream.Decode(reader))
+                        {
+                            lengh = lz4.Length;
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+            }
+            return lengh;
+        }
     }
 }
