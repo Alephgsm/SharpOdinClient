@@ -13,14 +13,14 @@ USB communication in SharpOdinClient is serialport.
 1. install Official Samsung usb driver
 2. Connect your device in download mode 
 
-### Namespaces
+## Namespaces
 first add namespaces of SharpOdinClient on your project
 ```using SharpOdinClient;
 using SharpOdinClient.structs;
 using SharpOdinClient.util;
 ```
 
-### Subscribe for events
+## Subscribe for events
 ```        private Odin Odin = new Odin();
         public MainWindow()
         {
@@ -39,7 +39,7 @@ using SharpOdinClient.util;
         }
 ```
 
-### Find Automatically samsung devices in download mode
+## Find Automatically samsung devices in download mode
 
 ```  public async Task FindOdin()
         {
@@ -57,7 +57,7 @@ using SharpOdinClient.util;
         }
 ```
 
-### Read Info from device
+## Read Info from device
 ```public async Task ReadOdinInfo()
         {
             if(await Odin.FindAndSetDownloadMode())
@@ -83,7 +83,7 @@ The concept of some 'keys'
 + `prov` = Provision
 
 
-### Read Pit from device
+## Read Pit from device
 ```public async Task ReadPit()
         {
             if(await Odin.FindAndSetDownloadMode())
@@ -110,7 +110,7 @@ for doing any action in download mode , need first to check `IsOdin` and Run `LO
 `buffer` = is byte array of pit from device , you can write this buffer on file for saving pit
 `entry` = is list of partition information of your device
 
-### Write Pit On Device
+## Write Pit On Device
 ```
   /// <summary>
         /// write pit file on your device
@@ -139,7 +139,7 @@ for doing any action in download mode , need first to check `IsOdin` and Run `LO
 
 + `pit` parameter = if you want to write pit from tar or tar.md5(Like CSC) file on device you can set your tar type file path , also you can set your pit single file with .pit format file
 
-### Flash List Of tar.md5 package on device
+## Flash List Of tar.md5 package on device
 ```/// <summary>
         /// Add List Of Your tar package (bl,ap,cp,csc , or more)
         /// </summary>
@@ -238,7 +238,7 @@ for flashing tar,tar.md5 contains files(lz4 , image, bin and more ...) we need t
 
 in `FlashFirmware` function , SharpOdinClient can write lz4 from contains of your tar package
 
-### Flash Single File
+## Flash Single File
 You can Flash your single file like boot.img  or more files on partitions
 ```
         /// <summary>
