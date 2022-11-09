@@ -226,6 +226,8 @@ for doing any action in download mode , need first to check `IsOdin` and Run `LO
         }
 ```
 
-for flashing tar,tar.md5 contains files we need to create list of `FileFlash` from you tar package information.
+for flashing tar,tar.md5 contains files(lz4 , image, bin and more ...) we need to create list of `FileFlash` from you tar package information.
 
 `Enable` property in `FileFlash` is `bool` if you set this propery to false, SharpOdinClient does not Flash on the phone.
+
+in `FlashFirmware` function , SharpOdinClient can write lz4 from contains of your tar package
