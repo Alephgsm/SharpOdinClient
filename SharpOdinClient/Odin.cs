@@ -466,7 +466,7 @@ namespace SharpOdinClient
                     {
                         if (Debug)
                         {
-                            Log?.Invoke($" : Failed", MsgType.Result);
+                            Log?.Invoke($" : Failed", MsgType.Result , true);
                         }
                         return false;
                     }
@@ -488,7 +488,7 @@ namespace SharpOdinClient
                 Log?.Invoke("File partition cannot find in your device partition : ", MsgType.Message);
                 foreach (var currepted in GetCurrepted)
                 {
-                    Log?.Invoke(currepted.FileName, MsgType.Result);
+                    Log?.Invoke(currepted.FileName + ", ", MsgType.Result , true);
                 }
             }
 
@@ -542,7 +542,7 @@ namespace SharpOdinClient
                     {
                         if (Debug)
                         {
-                            Log?.Invoke("Failed", MsgType.Result);
+                            Log?.Invoke("Failed", MsgType.Result , true);
                         }
                         return false;
                     }
@@ -560,7 +560,7 @@ namespace SharpOdinClient
             if (string.IsNullOrEmpty(WritenItem.FileName))
             {
                 Log?.Invoke("File Not Found In Device Partition : ", MsgType.Message);
-                Log?.Invoke(WritenItem.FileName, MsgType.Result);
+                Log?.Invoke(WritenItem.FileName, MsgType.Result , true);
             }
             return true;
         }

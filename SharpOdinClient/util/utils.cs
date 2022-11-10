@@ -10,7 +10,7 @@ namespace SharpOdinClient.util
             Result
         }
         public static bool Stop;
-        public delegate void LogDelegate(string Text,  MsgType Color);
+        public delegate void LogDelegate(string Text,  MsgType Color ,bool IsError = false);
         public delegate void ProgressChangeDelegate(long max, long value);
         public delegate void ProgressChangedDelegate(string filename, long max, long value, long WritenSize);
 
