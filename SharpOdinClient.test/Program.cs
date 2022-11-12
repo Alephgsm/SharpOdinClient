@@ -19,17 +19,20 @@ namespace SharpOdinClient.test
         private Odin Odin = new Odin();
         public Program()
         {
-            Odin.Log += Odin_Log;
+            Odin.Log += Odin_Log ;
             Odin.ProgressChanged += Odin_ProgressChanged;
+        }
+
+        private void Odin_Log(string Text, utils.MsgType Color, bool IsError = false)
+        {
+            throw new NotImplementedException();
         }
 
         private void Odin_ProgressChanged(string filename, long max, long value, long WritenSize)
         {
         }
 
-        private void Odin_Log(string Text, SharpOdinClient.util.utils.MsgType Color)
-        {
-        }
+  
         public async Task FindOdin()
         {
             //Find Auto odin device
