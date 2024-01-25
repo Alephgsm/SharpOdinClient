@@ -43,12 +43,17 @@ using SharpOdinClient.util;
         }
 ```
 1. ProgressChanged event
+   
    filename : File Name of flashing on device
+   
    max: File Size
+   
    value: File Size Writed
 
-2. Log event
+3. Log event
+   
    Text: Log text
+   
    Color: color of log
 
 ## Find Automatically samsung devices in download mode
