@@ -23,7 +23,8 @@ using SharpOdinClient.util;
 ```
 
 ## Subscribe for events
-```        private Odin Odin = new Odin();
+```
+        private Odin Odin = new Odin();
         public MainWindow()
         {
             InitializeComponent();
@@ -34,12 +35,21 @@ using SharpOdinClient.util;
 
         private void Odin_ProgressChanged(string filename, long max, long value, long WritenSize)
         {
+                
         }
 
         private void Odin_Log(string Text, SharpOdinClient.util.utils.MsgType Color)
         {
         }
 ```
+1. ProgressChanged event
+   filename : File Name of flashing on device
+   max: File Size
+   value: File Size Writed
+
+2. Log event
+   Text: Log text
+   Color: color of log
 
 ## Find Automatically samsung devices in download mode
 
