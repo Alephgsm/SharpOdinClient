@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/banner.svg" alt="SharpOdinClient — C# Samsung Odin Protocol Library" width="100%"/>
+  <img src="https://raw.githubusercontent.com/Alephgsm/SharpOdinClient/refs/heads/master/docs/banner.svg" alt="SharpOdinClient — C# Samsung Odin Protocol Library" width="100%"/>
 </p>
 
 # SharpOdinClient
