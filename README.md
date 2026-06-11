@@ -1,304 +1,395 @@
+<p align="center">
+  <img src="docs/banner.svg" alt="SharpOdinClient — C# Samsung Odin Protocol Library" width="100%"/>
+</p>
+
 # SharpOdinClient
-SharpOdinClient is a .NET library that allows .NET applications to communicate with samsung android devices in download mode.
 
-A suitable client for flash(image , tar.md5 , lz4), getting info and implementing other features.
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![.NET Framework](https://img.shields.io/badge/.NET_Framework-4.5.1+-512BD4)](https://dotnet.microsoft.com/)
+[![Platform](https://img.shields.io/badge/Platform-Windows-0078D4)](https://www.microsoft.com/windows)
 
-It provides a .NET implementation of the odin protocol.
-# Requirements:
-+ .NET Framework 4.5.1
-+ Official Samsung usb driver
+**SharpOdinClient** is a .NET library that lets C# applications talk to **Samsung Android devices in download mode (ODIN / LOKE)**. Use it to flash firmware (`image`, `tar`, `tar.md5`, `lz4`), read device info, read/write PIT, and build your own Odin-style tools — without wrapping the official closed `SS_DL.dll`.
 
+USB communication uses the **Windows serial COM port** (Samsung CDC driver). No UsbDk dependency.
 
-# How does work?
-USB communication in SharpOdinClient is serialport.
+---
 
-1. install Official Samsung usb driver
-2. Connect your device in download mode 
+## SharpOdinClient Pro — commercial upgrade (Odin 3.14.4)
 
-## Namespaces
-first add namespaces of SharpOdinClient on your project
-```using SharpOdinClient;
+We now offer a **commercial, production-grade** successor built on the **Odin3 v3.14.4** protocol:
+
+**[SharpOdinClient Pro — C# Odin Source Code (product page)](https://alephgsm.com/2026/06/11/sharpodinclient-pro/)**
+
+| | **SharpOdinClient** (this repo) | **SharpOdinClient Pro** |
+|---|---|---|
+| **License** | GPL-3.0 (open source) | Commercial — ship inside closed-source products |
+| **Protocol** | Earlier Odin generation | Reverse-engineered from **Odin3 v3.14.4** |
+| **Framework** | .NET Framework 4.5.1 | .NET Framework 4.7.2 |
+| **Android 15 / 16 `super.img`** | Known failures ([#18](https://github.com/Alephgsm/SharpOdinClient/issues/18)) | **Fixed** |
+| **Secure-download auth (0x69)** | Not included | Full implementation |
+| **Mass D/L, Home Binary, `.ock`** | Not included | Included |
+| **GUI** | Library only | WinForms Odin3 clone + CLI |
+| **Support** | Community | Private licensing & support |
+
+**Choose this open-source library** if you need basic flash / info / PIT on older targets and you are fine with GPL-3.0.
+
+**Choose [SharpOdinClient Pro](https://alephgsm.com/2026/06/11/sharpodinclient-pro/)** if you flash modern devices (Android 15/16), need secure-download authentication, Mass D/L, One Click / Home Binary workflows, or a **commercial license** for your own tool.
+
+Contact for Pro licensing: [Telegram @GsmCoder](https://t.me/GsmCoder)
+
+---
+
+## Table of contents
+
+- [Requirements](#requirements)
+- [Features](#features)
+- [Quick start](#quick-start)
+- [Find devices in download mode](#find-devices-in-download-mode)
+- [Read device info](#read-device-info)
+- [Read PIT from device](#read-pit-from-device)
+- [Write PIT to device](#write-pit-to-device)
+- [Flash firmware (tar / tar.md5)](#flash-firmware-tar--tarmd5)
+- [Flash a single file](#flash-a-single-file)
+- [Events (Log & Progress)](#events-log--progress)
+- [How it works](#how-it-works)
+- [Known limitations](#known-limitations)
+- [Related projects](#related-projects)
+- [License](#license)
+- [Disclaimer](#disclaimer)
+
+---
+
+## Requirements
+
+1. **Windows** with the official **Samsung USB driver** installed.
+2. **.NET Framework 4.5.1** or newer.
+3. Device connected in **Download mode** (Odin mode).
+
+---
+
+## Features
+
+- Auto-detect Samsung devices in download mode (VID/PID / COM port).
+- Read device information (`DVIF` — model, CSC, firmware version, unique id, etc.).
+- Read PIT from the device.
+- Write PIT (from `.pit` or from a `tar` / `tar.md5` that contains a PIT member).
+- Flash `tar`, `tar.md5` packages (including `lz4`, `img`, `bin` members inside TAR).
+- Flash a single file to a named partition (e.g. `boot.img`, `sboot.bin`).
+- Async API with `Log` and `ProgressChanged` events.
+- Pure managed C# — no dependency on `SS_DL.dll`.
+
+---
+
+## Quick start
+
+### Namespaces
+
+```csharp
 using SharpOdinClient.structs;
 using SharpOdinClient.util;
 ```
 
-## Subscribe for events
-```
-        private Odin Odin = new Odin();
-        public MainWindow()
-        {
-            InitializeComponent();
+### Create an instance and subscribe to events
 
-            Odin.Log += Odin_Log;
-            Odin.ProgressChanged += Odin_ProgressChanged;
-        }
+```csharp
+private readonly Odin _odin = new Odin();
 
-        private void Odin_ProgressChanged(string filename, long max, long value, long WritenSize)
-        {
-                
-        }
+public MainWindow()
+{
+    InitializeComponent();
+    _odin.Log += OnOdinLog;
+    _odin.ProgressChanged += OnOdinProgress;
+}
 
-        private void Odin_Log(string Text, SharpOdinClient.util.utils.MsgType Color)
-        {
-        }
-```
-1. ProgressChanged event
-   
-   filename : File Name of flashing on device
-   
-   max: File Size
-   
-   value: File Size Writed
+private void OnOdinProgress(string filename, long max, long value, long writtenSize)
+{
+    // filename: partition/file being flashed
+    // max: total size
+    // value / writtenSize: bytes written
+}
 
-3. Log event
-   
-   Text: Log text
-   
-   Color: color of log
-
-## Find Automatically samsung devices in download mode
-
-```  public async Task FindOdin()
-        {
-            //Find Auto odin device
-            var device = await Odin.FindDownloadModePort();
-            //device name
-            Console.WriteLine(device.Name);
-
-            // COM Port Of device 
-            Console.WriteLine(device.COM);
-
-            // VID and PID Of Device
-            Console.WriteLine(device.VID);
-            Console.WriteLine(device.PID);
-        }
+private void OnOdinLog(string text, utils.MsgType color)
+{
+    // text: log line
+    // color: message type for UI coloring
+}
 ```
 
-## Read Info from device
-```public async Task ReadOdinInfo()
+---
+
+## Find devices in download mode
+
+```csharp
+var device = await _odin.FindDownloadModePort();
+
+Console.WriteLine(device.Name);  // device name
+Console.WriteLine(device.COM);    // COM port number
+Console.WriteLine(device.VID);    // USB VID
+Console.WriteLine(device.PID);    // USB PID
+```
+
+To open the session on the found port:
+
+```csharp
+if (await _odin.FindAndSetDownloadMode())
+{
+  // ready for LOKE_Initialize / flash operations
+}
+```
+
+---
+
+## Read device info
+
+After `FindAndSetDownloadMode()`:
+
+```csharp
+var info = await _odin.DVIF();
+await _odin.PrintInfo();
+```
+
+Common keys in the `info` dictionary:
+
+| Key | Meaning |
+|-----|---------|
+| `capa` | Capa number |
+| `product` | Product id |
+| `model` | Model number |
+| `fwver` | Firmware version |
+| `vendor` | Vendor |
+| `sales` | Sales code |
+| `ver` | Build number |
+| `did` | DID number |
+| `un` | Unique id |
+| `tmu_temp` | TMU number |
+| `prov` | Provision |
+
+---
+
+## Read PIT from device
+
+Most download-mode operations require `IsOdin()` and `LOKE_Initialize` first. Use `totalfilesize = 0` when you are not flashing.
+
+```csharp
+if (await _odin.FindAndSetDownloadMode())
+{
+    await _odin.PrintInfo();
+
+    if (await _odin.IsOdin())
+    {
+        if (await _odin.LOKE_Initialize(0))
         {
-            if(await Odin.FindAndSetDownloadMode())
+            var pit = await _odin.Read_Pit();
+            if (pit.Result)
             {
-                //get info from device
-                var info = await Odin.DVIF();
-                await Odin.PrintInfo();
+                byte[] pitBytes = pit.data;           // raw PIT file bytes
+                var entries = pit.Pit;                // partition table entries
             }
         }
+    }
+}
 ```
-in `info` variable we get dictionary of `string` , `string`
-The concept of some 'keys'
-+ `capa` = Capa Number
-+ `product` = Product Id
-+ `model` = Model Number
-+ `fwver` = Firmware Version
-+ `vendor` = vendor
-+ `sales` = Sales Code
-+ `ver` = Build Number
-+ `did` = did Number
-+ `un` = Unique Id
-+ `tmu_temp` = Tmu Number
-+ `prov` = Provision
 
+---
 
-## Read Pit from device
-```public async Task ReadPit()
+## Write PIT to device
+
+Parameter `pit` can be:
+
+- A standalone `.pit` file path, or
+- A `tar` / `tar.md5` path that contains a PIT member (e.g. CSC package).
+
+```csharp
+if (await _odin.FindAndSetDownloadMode())
+{
+    await _odin.PrintInfo();
+
+    if (await _odin.IsOdin())
+    {
+        if (await _odin.LOKE_Initialize(0))
         {
-            if(await Odin.FindAndSetDownloadMode())
-            {
-                await Odin.PrintInfo();
-                if (await Odin.IsOdin())
-                {
-                    if(await Odin.LOKE_Initialize(0))
-                    {
-                        var Pit = await Odin.Read_Pit();
-                        if (Pit.Result)
-                        {
-                            var buffer = Pit.data;
-                            var entry = Pit.Pit;
-                        }
-                    }
-                }
-            }
+            bool ok = (await _odin.Write_Pit("path\\to\\device.pit")).status;
         }
+    }
+}
 ```
 
-for doing any action in download mode , need first to check `IsOdin` and Run `LOKE_Initialize` argument, if you do not want to write anything on device set `LOKE_Initialize` `totalfilesize` parameter to zero(0) 
+---
 
-`buffer` = is byte array of pit from device , you can write this buffer on file for saving pit
-`entry` = is list of partition information of your device
+## Flash firmware (tar / tar.md5)
 
-## Write Pit On Device
-```
-  /// <summary>
-        /// write pit file on your device
-        /// </summary>
-        /// <param name="pit">in this parameter, you can set tar.md5 contains have pit file(Like csc package of firmware)
-        /// or pit file with .pit format
-        /// </param>
-        /// <returns>true if success</returns>
-        public async Task<bool> Write_Pit(string pit)
+Build a `List<FileFlash>` from your BL / AP / CP / CSC (and optional) packages, then flash:
+
+```csharp
+public async Task<bool> FlashFirmware(List<string> tarPaths)
+{
+    var flashFiles = new List<FileFlash>();
+
+    foreach (var tarPath in tarPaths)
+    {
+        var members = _odin.tar.TarInformation(tarPath);
+        foreach (var member in members)
         {
-            if (await Odin.FindAndSetDownloadMode())
+            if (AlreadyAdded(member, flashFiles)) continue;
+
+            var ext = Path.GetExtension(member.Filename);
+            var file = new FileFlash
             {
-                await Odin.PrintInfo();
-                if (await Odin.IsOdin())
-                {
-                    if (await Odin.LOKE_Initialize(0))
-                    {
-                        var Pit = await Odin.Write_Pit(pit);
-                        return Pit.status;
-                    }
-                }
-            }
-            return false;
-        }
-```
-
-+ `pit` parameter = if you want to write pit from tar or tar.md5(Like CSC) file on device you can set your tar type file path , also you can set your pit single file with .pit format file
-
-## Flash List Of tar.md5 package on device
-```/// <summary>
-        /// Add List Of Your tar package (bl,ap,cp,csc , or more)
-        /// </summary>
-        /// <param name="ListOfTarFile">add tar type files path in this list</param>
-        /// <returns></returns>
-        public async Task<bool> FlashFirmware(List<string> ListOfTarFile)
-        {
-            var FlashFile = new List<FileFlash>();
-            foreach(var i in ListOfTarFile)
-            {
-                var item = Odin.tar.TarInformation(i);
-                if(item.Count > 0)
-                {
-                    foreach (var Tiem in item)
-                    {
-                        if (!Exist(Tiem , FlashFile))
-                        {
-                            var Extension = System.IO.Path.GetExtension(Tiem.Filename);
-                            var file = new FileFlash
-                            {
-                                Enable = true,
-                                FileName = Tiem.Filename,
-                                FilePath = i
-                            };
-
-                            if (Extension == ".pit")
-                            {
-                                //File Contains have pit
-                            }
-                            else if (Extension == ".lz4")
-                            {
-                                file.RawSize = Odin.CalculateLz4SizeFromTar(i, Tiem.Filename);
-                            }
-                            else
-                            {
-                                file.RawSize = Tiem.Filesize;
-                            }
-                            FlashFile.Add(file);
-                        }
-                    }
-                }
-               
-            }
-
-            if(FlashFile.Count > 0)
-            {
-                var Size = 0L;
-                foreach (var item in FlashFile)
-                {
-                    Size += item.RawSize;
-                }
-                if (await Odin.FindAndSetDownloadMode())
-                {
-                    await Odin.PrintInfo();
-                    if (await Odin.IsOdin())
-                    {
-                        if (await Odin.LOKE_Initialize(Size))
-                        {
-                            var findPit = FlashFile.Find(x => x.FileName.ToLower().EndsWith(".pit"));
-                            if(findPit != null)
-                            {
-                                var res = MessageBox.Show("Pit Finded on your tar package , you want to repartition?", "", MessageBoxButton.YesNo);
-                                if (res == MessageBoxResult.Yes)
-                                {
-                                    var Pit = await Odin.Write_Pit(findPit.FilePath);
-
-                                }
-                            }
-                          
-                            var ReadPit = await Odin.Read_Pit();
-                            if (ReadPit.Result)
-                            {
-                                var EfsClearInt = 0;
-                                var BootUpdateInt = 1;
-                                if (await Odin.FlashFirmware(FlashFile, ReadPit.Pit, EfsClearInt, BootUpdateInt, true))
-                                {
-                                    if (await Odin.PDAToNormal())
-                                    {
-                                        return true;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-
-            return false;
-        }
-```
-
-for flashing tar,tar.md5 contains files(lz4 , image, bin and more ...) we need to create list of `FileFlash` from you tar package information.
-
-`Enable` property in `FileFlash` is `bool` if you set this propery to false, SharpOdinClient does not Flash on the phone.
-
-in `FlashFirmware` function , SharpOdinClient can write lz4 from contains of your tar package
-
-## Flash Single File
-You can Flash your single file like boot.img  or more files on partitions
-```
-        /// <summary>
-        /// Flash Single File lz4 , image
-        /// </summary>
-        /// <param name="FilePath">path of your file</param>
-        /// <param name="PartitionFileName">like boot.img , sboot.bin or more ...</param>
-        /// <returns></returns>
-        public async Task<bool> FlashSingleFile(string FilePath , string PartitionFileName)
-        {
-            var FlashFile = new FileFlash
-            {
-                Enable = true,
-                FileName = PartitionFileName,
-                FilePath = FilePath,
-                RawSize = new FileInfo(FilePath).Length
+                Enable   = true,
+                FileName = member.Filename,
+                FilePath = tarPath
             };
 
-            if (await Odin.FindAndSetDownloadMode())
+            if (ext == ".pit")
             {
-                await Odin.PrintInfo();
-                if (await Odin.IsOdin())
-                {
-                    if (await Odin.LOKE_Initialize(FlashFile.RawSize))
-                    {
-                        var ReadPit = await Odin.Read_Pit();
-                        if (ReadPit.Result)
-                        {
-                            var EfsClearInt = 0;
-                            var BootUpdateInt = 0;
-                            if (await Odin.FlashSingleFile(FlashFile, ReadPit.Pit, EfsClearInt, BootUpdateInt, true))
-                            {
-                                if (await Odin.PDAToNormal())
-                                {
-                                    return true;
-                                }
-                            }
-                        }
-                    }
-                }
+                // PIT inside package — handle repartition separately if needed
+            }
+            else if (ext == ".lz4")
+            {
+                file.RawSize = _odin.CalculateLz4SizeFromTar(tarPath, member.Filename);
+            }
+            else
+            {
+                file.RawSize = member.Filesize;
             }
 
-
-            return false;
+            flashFiles.Add(file);
         }
+    }
+
+    if (flashFiles.Count == 0) return false;
+
+    long totalSize = flashFiles.Sum(f => f.RawSize);
+
+    if (!await _odin.FindAndSetDownloadMode()) return false;
+    await _odin.PrintInfo();
+
+    if (!await _odin.IsOdin()) return false;
+    if (!await _odin.LOKE_Initialize(totalSize)) return false;
+
+    // Optional: repartition if PIT is inside the package
+    var pitInTar = flashFiles.Find(x => x.FileName.EndsWith(".pit", StringComparison.OrdinalIgnoreCase));
+    if (pitInTar != null)
+    {
+        // await _odin.Write_Pit(pitInTar.FilePath);
+    }
+
+    var readPit = await _odin.Read_Pit();
+    if (!readPit.Result) return false;
+
+    const int efsClear = 0;
+    const int bootUpdate = 1;
+
+    if (!await _odin.FlashFirmware(flashFiles, readPit.Pit, efsClear, bootUpdate, autoReboot: true))
+        return false;
+
+    return await _odin.PDAToNormal();
+}
 ```
+
+Set `FileFlash.Enable = false` to skip a member without removing it from the list.
+
+---
+
+## Flash a single file
+
+```csharp
+public async Task<bool> FlashSingleFile(string filePath, string partitionFileName)
+{
+    var flashFile = new FileFlash
+    {
+        Enable   = true,
+        FileName = partitionFileName,   // e.g. "boot.img"
+        FilePath = filePath,
+        RawSize  = new FileInfo(filePath).Length
+    };
+
+    if (!await _odin.FindAndSetDownloadMode()) return false;
+    await _odin.PrintInfo();
+
+    if (!await _odin.IsOdin()) return false;
+    if (!await _odin.LOKE_Initialize(flashFile.RawSize)) return false;
+
+    var readPit = await _odin.Read_Pit();
+    if (!readPit.Result) return false;
+
+    const int efsClear = 0;
+    const int bootUpdate = 0;
+
+    if (!await _odin.FlashSingleFile(flashFile, readPit.Pit, efsClear, bootUpdate, autoReboot: true))
+        return false;
+
+    return await _odin.PDAToNormal();
+}
+```
+
+---
+
+## Events (Log & Progress)
+
+| Event | Purpose |
+|-------|---------|
+| `Log` | Text log lines with `MsgType` for UI coloring |
+| `ProgressChanged` | `filename`, `max`, `value`, `writtenSize` during flash |
+
+---
+
+## How it works
+
+1. Install the Samsung USB driver.
+2. Boot the phone into **Download mode** and connect via USB.
+3. SharpOdinClient finds the COM port (`FindDownloadModePort` / `FindAndSetDownloadMode`).
+4. Handshake with the bootloader (`IsOdin`, `LOKE_Initialize`).
+5. Read PIT, then stream firmware over the serial protocol.
+6. Optionally reboot to normal mode (`PDAToNormal`).
+
+Communication is **SerialPort-based** — the same transport class used by the official Odin ecosystem on Windows.
+
+---
+
+## Known limitations
+
+This open-source library targets an **earlier Odin protocol generation**. On newer Samsung devices you may hit:
+
+- **`super.img` flash failures on Android 15 / 16** — see [issue #18](https://github.com/Alephgsm/SharpOdinClient/issues/18) (e.g. Galaxy A55, Galaxy S25).
+- No **secure-download authentication (command 0x69)** for protocol v4+ devices.
+- No **Mass D/L**, **Home Binary / `download-list.txt`**, or **One Click (`.ock`)** workflows.
+- No built-in GUI — you integrate the library into your own app.
+
+For production use on modern devices, see **[SharpOdinClient Pro](https://alephgsm.com/2026/06/11/sharpodinclient-pro/)**.
+
+---
+
+## Related projects
+
+| Project | Description |
+|---------|-------------|
+| **[SharpOdinClient Pro](https://alephgsm.com/2026/06/11/sharpodinclient-pro/)** | Commercial Odin 3.14.4 C# source code (this library’s successor) |
+| [Freya](https://alephgsm.com/2022/11/14/sharpodinclient-samsung-devices-flash-library-in-c/) | .NET Samsung flash tool built on SharpOdinClient |
+| [GSM Alphabet](https://alephgsm.com/) | Source code & protocol research |
+
+---
+
+## License
+
+**GNU General Public License v3.0** — see [License](License) in this repository.
+
+If you integrate SharpOdinClient into your project, GPL-3.0 obligations apply (including share-alike for distributed derivatives). For a **commercial, closed-source license**, use [SharpOdinClient Pro](https://alephgsm.com/2026/06/11/sharpodinclient-pro/) instead.
+
+---
+
+## Contact
+
+- **SharpOdinClient Pro / licensing:** [Telegram @GsmCoder](https://t.me/GsmCoder)
+- **Product page:** [alephgsm.com/2026/06/11/sharpodinclient-pro/](https://alephgsm.com/2026/06/11/sharpodinclient-pro/)
+- **Website:** [alephgsm.com](https://alephgsm.com/)
+
+---
+
+## Disclaimer
+
+SharpOdinClient is intended for **lawful development, research, maintenance and authorized service** only. Flashing firmware can brick devices. Behavior depends on chipset, bootloader, firmware package, and security state. Use only on devices you own or are authorized to service, at your own risk.
+
+---
+
+**Author:** Alephgsm / GSM Alphabet
